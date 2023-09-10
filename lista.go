@@ -1,12 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type No struct {
 	data     int
 	previous *No
 	next     *No
 	position uint
+	inactive bool
+}
+
+type Deleted struct {
+	position uint
+	deleted  bool
 }
 
 type List struct {
@@ -38,8 +46,8 @@ func (l List) showList() {
 	no = l.start
 	for no != nil {
 		fmt.Printf(
-			"Current position: %p - data: %d - previous: %p - next %p\n",
-			no, no.data, no.previous, no.next)
+			"Current position: %d - data: %d - previous: %p - next %p - inactive: %t\n",
+			no.position, no.data, no.previous, no.next, no.inactive)
 		no = no.next
 	}
 }
@@ -71,6 +79,53 @@ func (l List) findByPosition(positions ...uint) []int {
 	return datas
 }
 
+func (l *List) logicalDeletion(positions ...uint) []Deleted {
+	var deleteds []Deleted
+	var no *No
+	no = l.start
+	for no != nil {
+		for _, p := range positions {
+			if no.position == p {
+				no.inactive = true
+				var deleted Deleted
+				deleted.position = p
+				deleted.deleted = true
+				deleteds = append(deleteds, deleted)
+			}
+		}
+		no = no.next
+	}
+	return deleteds
+}
+
+func (l *List) deletionDefined() {
+	var no, deleted *No
+	no = l.start
+	for no != nil {
+		if no.inactive {
+			if deleted == nil {
+				deleted = no.next
+			}
+			if no == l.start {
+				l.start = no.next
+				l.start.previous = nil
+			} else if no.next == nil {
+				l.end = no.previous
+				l.end.next = nil
+			} else {
+				no.previous.next = no.next
+				no.next.previous = no.previous
+			}
+		}
+		no = no.next
+	}
+	no = deleted
+	for no != nil {
+		no.position = no.previous.position + 1
+		no = no.next
+	}
+}
+
 func main() {
 	var list List
 	list.addData(5)
@@ -78,5 +133,11 @@ func main() {
 	list.addData(50)
 	list.addData(10)
 	list.addData(4)
-	fmt.Println(list.findByPosition(list.findByData(10)...))
+	list.addData(10)
+	positions := list.findByData(10)
+	list.logicalDeletion(positions...)
+	list.showList()
+	list.deletionDefined()
+	list.showList()
+
 }
