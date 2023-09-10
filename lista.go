@@ -52,6 +52,16 @@ func (l List) showList() {
 	}
 }
 
+func (l List) sliceList(position1 uint, position2 uint) []int {
+	var datas []int
+	no := l.findByPositionNo(position1)
+	for no.position <= position2 {
+		datas = append(datas, no.data)
+		no = *no.next
+	}
+	return datas
+}
+
 func (l List) findByData(data int) []uint {
 	var result []uint
 	var no *No
@@ -64,7 +74,8 @@ func (l List) findByData(data int) []uint {
 	}
 	return result
 }
-func (l List) findByPosition(positions ...uint) []int {
+
+func (l List) findByPositions(positions ...uint) []int {
 	var datas []int
 	var no *No
 	no = l.start
@@ -77,6 +88,31 @@ func (l List) findByPosition(positions ...uint) []int {
 		no = no.next
 	}
 	return datas
+}
+
+func (l List) findByPosition(position uint) int {
+	var data int
+	var no *No
+	no = l.start
+	for no != nil {
+		if no.position == position {
+			data = no.data
+		}
+		no = no.next
+	}
+	return data
+}
+
+func (l List) findByPositionNo(position uint) No {
+	var no, result *No
+	no = l.start
+	for no != nil {
+		if no.position == position {
+			result = no
+		}
+		no = no.next
+	}
+	return *result
 }
 
 func (l *List) logicalDeletion(positions ...uint) []Deleted {
@@ -98,7 +134,7 @@ func (l *List) logicalDeletion(positions ...uint) []Deleted {
 	return deleteds
 }
 
-func (l *List) deletionDefined() {
+func (l *List) deletionDefinitive() {
 	var no, deleted *No
 	no = l.start
 	for no != nil {
@@ -134,10 +170,6 @@ func main() {
 	list.addData(10)
 	list.addData(4)
 	list.addData(10)
-	positions := list.findByData(10)
-	list.logicalDeletion(positions...)
-	list.showList()
-	list.deletionDefined()
-	list.showList()
+	fmt.Println(list.sliceList(2, 4))
 
 }
